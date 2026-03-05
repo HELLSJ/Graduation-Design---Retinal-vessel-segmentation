@@ -232,16 +232,4 @@ LOSS_WEIGHTS = {
 
 ## 联系方式
 
-如有问题，请联系：[你的邮箱]
-
-## 许可证
-
-本项目仅供学术研究使用。
-
-## 致谢
-
-感谢以下公开数据集的提供者：
-- DRIVE dataset
-- CHASE_DB1 dataset
-- HRF dataset
-- STARE dataset
+如有问题，请联系：1206817338lcx@gmail.com
