@@ -10,7 +10,7 @@ from src.utils import set_seed
 from src.train import train_model
 from src.test import test_model
 from src.utils import analyze_model_attention
-
+from src.data import get_dataloaders
 
 def main():
     parser = argparse.ArgumentParser(description='Retinal Vessel Segmentation with Attention U-Net')
@@ -51,17 +51,29 @@ def main():
     
     if args.mode == 'train':
         print('\nStarting training...')
-        model, trainer = train_model(Config)
+        print('Loading data...')
+        train_loader, val_loader, _ = get_dataloaders(
+            Config.DATA_ROOT,
+            batch_size=Config.BATCH_SIZE,
+            num_workers=Config.NUM_WORKERS
+        )
+        model, trainer = train_model(train_loader, val_loader)
         print('\nTraining completed!')
         
     elif args.mode == 'test':
         print('\nStarting testing...')
-        metrics = test_model(args.checkpoint)
+        print('Loading data...')
+        _, _, test_loader = get_dataloaders(
+            Config.DATA_ROOT,
+            batch_size=Config.BATCH_SIZE,
+            num_workers=Config.NUM_WORKERS
+        )
+        metrics = test_model(test_loader, args.checkpoint)
         print('\nTesting completed!')
         
     elif args.mode == 'grad_cam':
         print('\nGenerating Grad-CAM visualizations...')
-        from src.data import get_dataloaders
+        print('Loading data...')
         from src.models import get_model
         
         _, _, test_loader = get_dataloaders(

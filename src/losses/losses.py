@@ -26,6 +26,9 @@ class FocalLoss(nn.Module):
         self.gamma = gamma
     
     def forward(self, pred, target):
+        if target.dim() == 3 and pred.dim() == 4:
+            target = target.unsqueeze(1)
+        target = target.float()
         bce_loss = F.binary_cross_entropy_with_logits(pred, target, reduction='none')
         pt = torch.exp(-bce_loss)
         focal_loss = self.alpha * (1 - pt) ** self.gamma * bce_loss
@@ -40,6 +43,10 @@ class BoundaryLoss(nn.Module):
     
     def forward(self, pred, target):
         pred = torch.sigmoid(pred)
+        
+        if target.dim() == 3 and pred.dim() == 4:
+            target = target.unsqueeze(1)
+        target = target.float()
         
         n, c, h, w = pred.shape
         
@@ -92,6 +99,9 @@ class WeightedBCELoss(nn.Module):
         self.pos_weight = pos_weight
     
     def forward(self, pred, target):
+        if target.dim() == 3 and pred.dim() == 4:
+            target = target.unsqueeze(1)
+        target = target.float()
         if self.pos_weight is not None:
             loss = F.binary_cross_entropy_with_logits(pred, target, pos_weight=self.pos_weight)
         else:

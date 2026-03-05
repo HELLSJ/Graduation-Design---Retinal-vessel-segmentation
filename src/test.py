@@ -4,7 +4,6 @@ import numpy as np
 from tqdm import tqdm
 
 from src.config import Config
-from src.data import get_dataloaders
 from src.models import get_model
 from src.losses import get_loss
 from src.metrics import MetricsCalculator
@@ -54,18 +53,11 @@ def evaluate_model(model, test_loader, criterion, device, save_dir):
     return metrics, metrics_calc
 
 
-def test_model(checkpoint_path=None):
+def test_model(test_loader, checkpoint_path=None):
     set_seed(Config.RANDOM_SEED)
     device = Config.DEVICE
     
     print(f'Using device: {device}')
-    
-    _, _, test_loader = get_dataloaders(
-        Config.DATA_ROOT,
-        batch_size=Config.BATCH_SIZE,
-        num_workers=Config.NUM_WORKERS
-    )
-    
     print(f'Test samples: {len(test_loader.dataset)}')
     
     model = get_model('improved_attention_unet', in_channels=3, out_channels=Config.NUM_CLASSES)
@@ -83,7 +75,7 @@ def test_model(checkpoint_path=None):
     
     if checkpoint_path:
         print(f'Loading checkpoint from {checkpoint_path}')
-        checkpoint = torch.load(checkpoint_path, map_location=device)
+        checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
         model.load_state_dict(checkpoint['model_state_dict'])
         print('Checkpoint loaded successfully')
     else:
@@ -93,7 +85,7 @@ def test_model(checkpoint_path=None):
         if checkpoints:
             checkpoint_path = checkpoints[-1]
             print(f'Loading best checkpoint from {checkpoint_path}')
-            checkpoint = torch.load(checkpoint_path, map_location=device)
+            checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
             model.load_state_dict(checkpoint['model_state_dict'])
             print('Best checkpoint loaded successfully')
         else:
@@ -103,12 +95,34 @@ def test_model(checkpoint_path=None):
     save_dir = Config.RESULT_DIR
     metrics, metrics_calc = evaluate_model(model, test_loader, criterion, device, save_dir)
     
-    print('\n' + '='*50)
-    print('Test Results')
-    print('='*50)
-    for key, value in metrics.items():
-        print(f'{key}: {value:.4f}')
-    print('='*50)
+    print('\n' + '='*70)
+    print('Test Results Table')
+    print('='*70)
+    print(f"{'Metric':<25} {'Value':<15} {'Standard Deviation':<15}")
+    print('-'*70)
+    
+    # 提取并打印主要指标
+    main_metrics = {
+        'Dice Coefficient': 'dice_mean',
+        'IoU Score': 'iou_mean',
+        'Sensitivity': 'sensitivity_mean',
+        'Specificity': 'specificity_mean',
+        'Accuracy': 'accuracy_mean',
+        'Precision': 'precision_mean',
+        'Recall': 'recall_mean',
+        'F1 Score': 'f1_mean',
+        'AUC': 'auc_mean'
+    }
+    
+    for display_name, metric_key in main_metrics.items():
+        if metric_key in metrics:
+            mean_value = metrics[metric_key]
+            std_key = metric_key.replace('mean', 'std')
+            std_value = metrics.get(std_key, 0.0)
+            print(f"{display_name:<25} {mean_value:.4f}         {std_value:.4f}")
+    
+    print('-'*70)
+    print('='*70)
     
     fpr, tpr, auc_score = metrics_calc.get_roc_curve()
     precision, recall, pr_auc = metrics_calc.get_pr_curve()
@@ -126,7 +140,21 @@ def test_model(checkpoint_path=None):
             os.path.join(save_dir, 'training_history.png')
         )
     
+    # 保存结果为CSV文件
+    import csv
+    csv_path = os.path.join(save_dir, 'test_results.csv')
+    with open(csv_path, 'w', newline='', encoding='utf-8') as f:
+        writer = csv.writer(f)
+        writer.writerow(['Metric', 'Value', 'Standard Deviation'])
+        for display_name, metric_key in main_metrics.items():
+            if metric_key in metrics:
+                mean_value = metrics[metric_key]
+                std_key = metric_key.replace('mean', 'std')
+                std_value = metrics.get(std_key, 0.0)
+                writer.writerow([display_name, f'{mean_value:.4f}', f'{std_value:.4f}'])
+    
     print(f'\nResults saved to {save_dir}')
+    print(f'CSV results saved to {csv_path}')
     
     return metrics
 

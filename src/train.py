@@ -8,7 +8,6 @@ from tqdm import tqdm
 import numpy as np
 
 from src.config import Config
-from src.data import get_dataloaders
 from src.models import get_model
 from src.losses import get_loss, CombinedLoss
 from src.metrics import MetricsCalculator
@@ -142,16 +141,35 @@ class Trainer:
             
             epoch_time = time.time() - start_time
             
-            if self.logger:
-                self.logger.info(f'Epoch {epoch}/{num_epochs} - {epoch_time:.2f}s')
-                self.logger.info(f'Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f}')
-                self.logger.info(f'Train Dice: {train_metrics["dice_mean"]:.4f} | Val Dice: {val_metrics["dice_mean"]:.4f}')
-                self.logger.info(f'Train IoU: {train_metrics["iou_mean"]:.4f} | Val IoU: {val_metrics["iou_mean"]:.4f}')
-            else:
+            # 打印表格形式的结果
+            if epoch % 5 == 0 or epoch == 1 or epoch == num_epochs:
+                print('\n' + '='*80)
                 print(f'Epoch {epoch}/{num_epochs} - {epoch_time:.2f}s')
-                print(f'Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f}')
-                print(f'Train Dice: {train_metrics["dice_mean"]:.4f} | Val Dice: {val_metrics["dice_mean"]:.4f}')
-                print(f'Train IoU: {train_metrics["iou_mean"]:.4f} | Val IoU: {val_metrics["iou_mean"]:.4f}')
+                print('='*80)
+                print(f"{'Metric':<20} {'Train':<15} {'Validation':<15}")
+                print('-'*80)
+                
+                # 打印主要指标
+                print(f"{'Loss':<20} {train_loss:.4f}          {val_loss:.4f}")
+                print(f"{'Dice':<20} {train_metrics['dice_mean']:.4f}          {val_metrics['dice_mean']:.4f}")
+                print(f"{'IoU':<20} {train_metrics['iou_mean']:.4f}          {val_metrics['iou_mean']:.4f}")
+                print(f"{'Sensitivity':<20} {train_metrics['sensitivity_mean']:.4f}          {val_metrics['sensitivity_mean']:.4f}")
+                print(f"{'Specificity':<20} {train_metrics['specificity_mean']:.4f}          {val_metrics['specificity_mean']:.4f}")
+                print(f"{'Accuracy':<20} {train_metrics['accuracy_mean']:.4f}          {val_metrics['accuracy_mean']:.4f}")
+                print(f"{'F1 Score':<20} {train_metrics['f1_mean']:.4f}          {val_metrics['f1_mean']:.4f}")
+                print(f"{'AUC':<20} {train_metrics['auc_mean']:.4f}          {val_metrics['auc_mean']:.4f}")
+                print('-'*80)
+                print('='*80)
+            else:
+                # 简洁输出
+                if self.logger:
+                    self.logger.info(f'Epoch {epoch}/{num_epochs} - {epoch_time:.2f}s')
+                    self.logger.info(f'Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f}')
+                    self.logger.info(f'Train Dice: {train_metrics["dice_mean"]:.4f} | Val Dice: {val_metrics["dice_mean"]:.4f}')
+                else:
+                    print(f'Epoch {epoch}/{num_epochs} - {epoch_time:.2f}s')
+                    print(f'Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f}')
+                    print(f'Train Dice: {train_metrics["dice_mean"]:.4f} | Val Dice: {val_metrics["dice_mean"]:.4f}')
             
             writer.add_scalar('Loss/train', train_loss, epoch)
             writer.add_scalar('Loss/val', val_loss, epoch)
@@ -184,17 +202,10 @@ class Trainer:
             print(f'Best IoU: {self.best_iou:.4f}')
 
 
-def train_model(config):
+def train_model(train_loader, val_loader, config=None):
     device = Config.DEVICE
     
     print(f'Using device: {device}')
-    
-    train_loader, val_loader, _ = get_dataloaders(
-        Config.DATA_ROOT, 
-        batch_size=Config.BATCH_SIZE, 
-        num_workers=Config.NUM_WORKERS
-    )
-    
     print(f'Train samples: {len(train_loader.dataset)}')
     print(f'Val samples: {len(val_loader.dataset)}')
     

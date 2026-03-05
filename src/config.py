@@ -3,14 +3,14 @@ import torch
 class Config:
     DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
-    DATA_ROOT = 'archive'
+    DATA_ROOT = 'data'
     
-    IMG_SIZE = (512, 512)
-    BATCH_SIZE = 8
-    NUM_WORKERS = 4
+    IMG_SIZE = (256, 256)
+    BATCH_SIZE = 16
+    NUM_WORKERS = 2
     
     LEARNING_RATE = 1e-4
-    NUM_EPOCHS = 100
+    NUM_EPOCHS = 20
     WEIGHT_DECAY = 1e-5
     
     NUM_CLASSES = 1

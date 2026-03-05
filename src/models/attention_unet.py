@@ -66,19 +66,19 @@ class AttentionUNet(nn.Module):
         
         self.bottleneck = DoubleConv(512, 1024)
         
-        self.attention4 = AttentionBlock(F_g=1024, F_l=512, F_int=256)
+        self.attention4 = AttentionBlock(F_g=512, F_l=512, F_int=256)
         self.upconv4 = nn.ConvTranspose2d(1024, 512, kernel_size=2, stride=2)
         self.decoder4 = DoubleConv(1024, 512)
         
-        self.attention3 = AttentionBlock(F_g=512, F_l=256, F_int=128)
+        self.attention3 = AttentionBlock(F_g=256, F_l=256, F_int=128)
         self.upconv3 = nn.ConvTranspose2d(512, 256, kernel_size=2, stride=2)
         self.decoder3 = DoubleConv(512, 256)
         
-        self.attention2 = AttentionBlock(F_g=256, F_l=128, F_int=64)
+        self.attention2 = AttentionBlock(F_g=128, F_l=128, F_int=64)
         self.upconv2 = nn.ConvTranspose2d(256, 128, kernel_size=2, stride=2)
         self.decoder2 = DoubleConv(256, 128)
         
-        self.attention1 = AttentionBlock(F_g=128, F_l=64, F_int=32)
+        self.attention1 = AttentionBlock(F_g=64, F_l=64, F_int=32)
         self.upconv1 = nn.ConvTranspose2d(128, 64, kernel_size=2, stride=2)
         self.decoder1 = DoubleConv(128, 64)
         
@@ -151,19 +151,19 @@ class ImprovedAttentionUNet(nn.Module):
             nn.ReLU(inplace=True)
         )
         
-        self.attention4 = AttentionBlock(F_g=1024, F_l=512, F_int=256)
+        self.attention4 = AttentionBlock(F_g=512, F_l=512, F_int=256)
         self.upconv4 = nn.ConvTranspose2d(1024, 512, kernel_size=2, stride=2)
         self.decoder4 = DoubleConv(1024, 512)
         
-        self.attention3 = AttentionBlock(F_g=512, F_l=256, F_int=128)
+        self.attention3 = AttentionBlock(F_g=256, F_l=256, F_int=128)
         self.upconv3 = nn.ConvTranspose2d(512, 256, kernel_size=2, stride=2)
         self.decoder3 = DoubleConv(512, 256)
         
-        self.attention2 = AttentionBlock(F_g=256, F_l=128, F_int=64)
+        self.attention2 = AttentionBlock(F_g=128, F_l=128, F_int=64)
         self.upconv2 = nn.ConvTranspose2d(256, 128, kernel_size=2, stride=2)
         self.decoder2 = DoubleConv(256, 128)
         
-        self.attention1 = AttentionBlock(F_g=128, F_l=64, F_int=32)
+        self.attention1 = AttentionBlock(F_g=64, F_l=64, F_int=32)
         self.upconv1 = nn.ConvTranspose2d(128, 64, kernel_size=2, stride=2)
         self.decoder1 = DoubleConv(128, 64)
         

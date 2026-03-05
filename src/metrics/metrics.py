@@ -101,8 +101,8 @@ def f1_score(pred, target):
 
 def calculate_auc(pred, target):
     pred = torch.sigmoid(pred)
-    pred_flat = pred.cpu().numpy().flatten()
-    target_flat = target.cpu().numpy().flatten()
+    pred_flat = pred.detach().cpu().numpy().flatten()
+    target_flat = target.detach().cpu().numpy().flatten()
     
     try:
         auc_score = roc_auc_score(target_flat, pred_flat)
@@ -157,8 +157,8 @@ class MetricsCalculator:
         self.auc_scores.append(calculate_auc(pred, target))
         
         pred_sigmoid = torch.sigmoid(pred)
-        self.all_preds.append(pred_sigmoid.cpu().numpy())
-        self.all_targets.append(target.cpu().numpy())
+        self.all_preds.append(pred_sigmoid.detach().cpu().numpy())
+        self.all_targets.append(target.detach().cpu().numpy())
     
     def compute(self):
         metrics = {
